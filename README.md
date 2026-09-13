@@ -1,20 +1,24 @@
-# Brainrot Match v2 — echte Memes, erfundene Menschen
+# dating.studer — Meme Edition (v3)
 
-Rein statische Seite. Bei jedem Swipe wird live ein echtes, aktuelles Meme-Bild von Reddit geladen (über eine öffentliche, kostenlose API) und mit einem komplett zufällig generierten Fake-Profil kombiniert (Name, Alter, Hobbys, Spruch).
+Rein statische Seite, näher am Look einer echten Dating-App: Vollbild-Foto-Karten im Tinder-Stil, Bottom-Navigation (Entdecken / Matches), und ein Fake-Chat bei jedem Match.
 
-Beispiel: ein Tung-Tung-Tung-Sahur-Bild taucht auf, darunter steht z.B. "Hans Rodriguez, 56 — Hobbys: Paddeln, Jassen".
+## Was neu ist gegenüber v2
+
+- **Andere Bildquelle:** [Imgflip](https://imgflip.com) statt Reddit-Feed. Liefert die ~100 populärsten, tatsächlich wiedererkennbaren Meme-**Vorlagen** (Drake, Distracted Boyfriend, Woman Yelling at Cat, One Does Not Simply, Two Buttons, ...) statt zufälliger Twitter-Screenshots.
+- **Komplett überarbeitetes UI:** echte Vollbild-Fotokarten mit Slide-Animation beim Swipen, eigene SVG-Icons statt Emojis, "Es ist ein Match!"-Vollbildschirm statt kleinem Toast, Online-Status/"zuletzt aktiv", aufklappbares Profil im Chat.
+- **50% Match-Chance:** Ein Like führt nicht mehr automatisch zu einem Match — wie in einer echten App weisst du vorher nicht, ob es klappt.
+- **Reaktionsfähigerer Chat-Generator:** Antworten werden anhand von Schlüsselwörtern in deiner Nachricht ausgewählt (Begrüssung, Frage, Hobby-Erwähnung, Verabredung, Kompliment, Lachen, kurze Antwort) statt komplett stumpf zufällig zu sein. Läuft rein lokal — keine echte KI, kein API-Key nötig (dazu unten mehr).
+- Alle Profile sind weiterhin klar mit einem "Fake-Profil"-Badge markiert.
+
+## Warum keine echte KI im Chat?
+
+Eine Anbindung an eine echte KI (z.B. die Anthropic- oder OpenAI-API) würde einen geheimen API-Key erfordern. Auf einer rein statischen, öffentlichen GitHub-Pages-Seite lässt sich so ein Key nicht sicher verstecken — jeder Besuchende könnte ihn im Quellcode auslesen und auf eure Kosten verwenden. Deshalb läuft der Chat komplett lokal über einen Schlüsselwort-Generator (`generator.js` → `generateReply`). Wer das später erweitern will: dafür bräuchte es einen kleinen eigenen Server, der den echten API-Key geheim hält und nur die Antworten weiterreicht — womit man dann wieder bei einer "richtigen" Backend-Lösung wäre (siehe die Node.js-Version, die wir vorher gebaut haben).
 
 ## Wie es funktioniert
 
-- Bild-Quelle: [meme-api.com](https://github.com/D3vd/Meme_Api) — kostenlos, kein API-Key nötig, holt zufällige Beiträge aus r/memes, r/dankmemes, r/wholesomememes, r/meirl, r/ProgrammerHumor (NSFW/Spoiler werden rausgefiltert).
-- Profil-Generator (`generator.js`): kombiniert zufällig Vor-/Nachnamen, Alter (22–76) und Hobbys aus festen Wortlisten zu einem Profiltext. Komplett erfunden, hat nichts mit den echten Meme-Urhebern zu tun.
-- Kein Login, keine eigene Datenbank — "Matches" werden nur lokal in deinem Browser gespeichert (`localStorage`).
-
-## Wichtig zu wissen
-
-- **Die Bildinhalte variieren** — da echte, aktuelle Reddit-Posts geladen werden, kann der Ton von harmlos bis albern bis (selten, trotz Filter) unpassend reichen. Es gibt keine Kuration durch mich.
-- **Abhängigkeit von Drittanbieter-API**: Ist meme-api.com down oder überlastet, zeigt die Seite eine Fehlermeldung mit "Nochmal versuchen"-Button statt eines Bildes.
-- Die generierten Namen/Profile sind **reiner Zufall** — jede Ähnlichkeit mit echten Personen ist Zufall.
+- Bild-Quelle: `https://api.imgflip.com/get_memes` — kostenlos, kein API-Key nötig für diesen Endpoint.
+- Profilgenerator (`generator.js`): Name, Alter, Stadt, Distanz, Job, Hobbys, Chat-Floskeln — alles zufällig aus festen Wortlisten kombiniert, keine echten Personen.
+- Matches & Chatverlauf werden nur lokal im Browser gespeichert (`localStorage`), keine eigene Datenbank.
 
 ## Lokal öffnen
 
@@ -22,16 +26,16 @@ Beispiel: ein Tung-Tung-Tung-Sahur-Bild taucht auf, darunter steht z.B. "Hans Ro
 npx serve .
 ```
 
-Dann die angezeigte Adresse im Browser öffnen (wichtig: über `http://`, nicht direkt als Datei öffnen, sonst blockiert der Browser die API-Anfrage).
+Wichtig: über `http://localhost:...` öffnen, nicht die Datei direkt doppelklicken — sonst blockiert der Browser die API-Anfrage an Imgflip.
 
 ## Auf GitHub Pages veröffentlichen
 
 1. Repo erstellen, Ordnerinhalt hochladen.
 2. **Settings → Pages → Source: Deploy from a branch**, Branch `main`, Ordner `/ (root)`.
-3. Fertig — komplett statisch, kein Server, keine Actions nötig. Die Meme-API wird direkt aus dem Browser der Besucher:innen angefragt.
+3. Fertig — komplett statisch, kein Server, keine Actions nötig.
 
-## Anpassen
+## Bekannte Grenzen
 
-- Andere Subreddits: `SUBREDDITS`-Array in `app.js` bearbeiten.
-- Andere Namen/Hobbys: Listen in `generator.js` erweitern.
-- Ladegröße pro Batch: `BATCH_SIZE` in `app.js`.
+- Die Imgflip-API liefert dieselben ~100 populären Vorlagen für alle Besucher:innen — es gibt keine Live-"Trend"-Erkennung für brandneue Formate, aber die Liste wird von Imgflip selbst regelmäßig aktualisiert (nach Nutzungshäufigkeit der letzten 30 Tage).
+- Kein echter Gesprächspartner im Chat — die Antworten sind zufällige, vorformulierte Sätze.
+- Ich konnte die API aus meiner Entwicklungsumgebung heraus nicht selbst live testen (dort ist der Netzwerkzugriff auf fremde Domains gesperrt) — im echten Browser sollte es aber funktionieren, da der Endpoint öffentlich und für clientseitige Nutzung gedacht ist. Falls es doch harkt, sag Bescheid, dann schauen wir uns das gemeinsam an.
