@@ -1,4 +1,4 @@
-# dating.studer — Meme Edition (v3)
+# dating.studer.website
 
 Rein statische Seite, näher am Look einer echten Dating-App: Vollbild-Foto-Karten im Tinder-Stil, Bottom-Navigation (Entdecken / Matches), und ein Fake-Chat bei jedem Match.
 
